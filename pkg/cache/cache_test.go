@@ -160,3 +160,22 @@ func Test_nextReader(t *testing.T) {
 		})
 	}
 }
+
+func Test_EncodeDecodeDecision(t *testing.T) {
+	tests := []struct {
+		value, origin, encoded string
+	}{
+		{BannedValue, "", BannedValue},
+		{BannedValue, "CAPI", "t|CAPI"},
+		{CaptchaValue, "lists:firehol_greensnow", "c|lists:firehol_greensnow"},
+	}
+	for _, tt := range tests {
+		if got := EncodeDecision(tt.value, tt.origin); got != tt.encoded {
+			t.Errorf("EncodeDecision(%q, %q) = %q, want %q", tt.value, tt.origin, got, tt.encoded)
+		}
+		value, origin := DecodeDecision(tt.encoded)
+		if value != tt.value || origin != tt.origin {
+			t.Errorf("DecodeDecision(%q) = %q, %q, want %q, %q", tt.encoded, value, origin, tt.value, tt.origin)
+		}
+	}
+}
