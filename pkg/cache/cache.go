@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync/atomic"
 
 	ttl_map "github.com/leprosus/golang-ttl-map"
@@ -26,6 +27,26 @@ const (
 	// CacheUnreachable error string when cache is unreachable.
 	CacheUnreachable = "cache:unreachable"
 )
+
+// originSeparator splits the remediation value from the decision origin in a cached entry.
+const originSeparator = "|"
+
+// EncodeDecision builds the cached value for a decision, keeping its origin
+// (e.g. "CAPI", "crowdsec", "lists:firehol_greensnow") for usage metrics.
+// Without an origin it returns the bare remediation value.
+func EncodeDecision(value, origin string) string {
+	if origin == "" {
+		return value
+	}
+	return value + originSeparator + origin
+}
+
+// DecodeDecision splits a cached value into its remediation value and origin.
+// Values written without an origin return an empty origin.
+func DecodeDecision(raw string) (string, string) {
+	value, origin, _ := strings.Cut(raw, originSeparator)
+	return value, origin
+}
 
 //nolint:gochecknoglobals
 var cache = ttl_map.New()
